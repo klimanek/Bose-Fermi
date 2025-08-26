@@ -20,7 +20,7 @@ The module recognizes such integrals symbolically and returns an exact result us
 --
 ## Example
 
-$$I := \int_0^\infty\frac{x^3}{e^x - 1}\,\mathrm{d}x$$
+$$I := \int_0^\infty\frac{x^3}{e^x - 1}\mathrm{d}x$$
 
 ```python
 In [1]: from sympy import symbols, Integral, exp, oo
