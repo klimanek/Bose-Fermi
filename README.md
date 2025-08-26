@@ -105,4 +105,3 @@ This module is designed for eventual integration into **SymPy**. Contributions a
 ### Future SymPy integration:
 We're actively working on integrating this functionality into SymPy's main integration engine. The goal is to make these evaluations available automatically when you call `.doit()` on supported integrals.
 
-**Contact**: [Your GitHub/email] for collaboration opportunities.
