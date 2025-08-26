@@ -87,7 +87,7 @@ The following symbolic forms are supported:
 ```bash
 # For now, clone and use directly:
 git clone https://github.com/klimanek/Bose-Fermi.git
-cd bosefermi
+cd Bose-Fermi
 pip install -e .
 ```
 
