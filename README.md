@@ -5,7 +5,7 @@ This package provides functionality to automatically recognize and evaluate a cl
 These integrals have the general form:
 
 $$
-\int_0^\infty \frac{x^p}{e^{\alpha x + \mu} \pm 1} \, \mathrm{d}x
+\int_0^\infty \frac{x^p}{e^{\alpha x + \mu} \pm 1} \mathrm{d}x
 $$
 
 where:
