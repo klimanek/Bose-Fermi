@@ -74,8 +74,8 @@ The following symbolic forms are supported:
 |---------|--------|
 | $\int_0^\infty \frac{x^p}{e^x - 1} \, dx$ | $\Gamma(p+1)\cdot\zeta(p+1)$ |
 | $\int_0^\infty \frac{x^p}{e^{\alpha x} - 1} \, dx$ | $\Gamma(p+1)\cdot\zeta(p+1)/\alpha^{p+1}$ |
-| $\int_0^\infty \frac{x^p}{e^{x + \mu} - 1} \, dx$ | $\Gamma(p+1)\cdot\operatorname{Li}_{p+1}(e^{-\mu})$ |
-| $\int_0^\infty \frac{x^p}{e^{\alpha x + \mu} - 1} \, dx$ | $\Gamma(p+1)\cdot\operatorname{Li}_{p+1}(e^{-\mu})/\alpha^{p+1}$ |
+| $\int_0^\infty \frac{x^p}{e^{x + \mu} - 1} \, dx$ | $\Gamma(p+1)\cdot\mathrm{Li}_{p+1}(e^{-\mu})$ |
+| $\int_0^\infty \frac{x^p}{e^{\alpha x + \mu} - 1} \, dx$ | $\Gamma(p+1)\cdot\mathrm{Li}_{p+1}(e^{-\mu})/\alpha^{p+1}$ |
 | $\int_0^\infty \frac{x^p}{e^x + 1} \, dx$ | $\Gamma(p+1)\cdot\eta(p+1)$ |
 | $\int_0^\infty \frac{x^p}{e^{\alpha x} + 1} \, dx$ | $\Gamma(p+1)\cdot\eta(p+1)/\alpha^{p+1}$ |
 | ... |
