@@ -94,7 +94,7 @@ pip install -e .
 
 ## Contributing & Integration
 
-This module is designed for eventual integration into **SymPy**. Contributions are warmly welcome!
+This package is designed for eventual integration into **SymPy**. Contributions are warmly welcome!
 
 ### How to contribute:
 - **Bug reports**: Found an integral that should work but doesn't? Please report it!
