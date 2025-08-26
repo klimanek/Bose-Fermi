@@ -54,13 +54,13 @@ bose_fermi_integral(expr)
 This integral corresponds, up to a Gamma prefactor, to the *standard* Bose-Einstein or Fermi-Dirac integral defined in physics:
 
 $$
-B_k(\mu) = \frac{1}{\Gamma(k+1)} \int_0^\infty \frac{x^k}{e^{x + \mu} - 1} \, \mathrm{d}x \quad \text{(bosons)}
+B_k(\mu) = \frac{1}{\Gamma(k+1)} \int_0^\infty \frac{x^k}{e^{x + \mu} - 1} \mathrm{d}x \quad \text{(bosons)}
 $$
 
 or
 
 $$
-F_k(\mu) = \frac{1}{\Gamma(k+1)} \int_0^\infty \frac{x^k}{e^{x + \mu} + 1} \, \mathrm{d}x \quad \text{(fermions)}
+F_k(\mu) = \frac{1}{\Gamma(k+1)} \int_0^\infty \frac{x^k}{e^{x + \mu} + 1} \mathrm{d}x \quad \text{(fermions)}
 $$
 
 
@@ -86,9 +86,9 @@ The following symbolic forms are supported:
 
 ```bash
 # For now, clone and use directly:
-git clone [your-repo-url]
+git clone https://github.com/klimanek/Bose-Fermi.git
 cd bose-fermi-integrals
-python -m pip install -e .
+pip install -e .
 ```
 
 
@@ -99,8 +99,8 @@ This module is designed for eventual integration into **SymPy**. Contributions a
 ### How to contribute:
 - **Bug reports**: Found an integral that should work but doesn't? Please report it!
 - **New patterns**: Know of related integrals from physics/mathematics? Let's add them!
-- **Performance improvements**: Optimizations in pattern matching are always appreciated
-- **SymPy integration**: Help with integrating this into the main SymPy codebase
+- **Performance improvements**: Optimizations in pattern matching are always appreciated.
+- **SymPy integration**: Help with integrating this into the main SymPy codebase.
 
 ### Future SymPy integration:
 We're actively working on integrating this functionality into SymPy's main integration engine. The goal is to make these evaluations available automatically when you call `.doit()` on supported integrals.
