@@ -1,6 +1,6 @@
 # Bose-Fermi Integral Evaluator for SymPy
 
-This module provides functionality to automatically recognize and evaluate a class of definite integrals frequently encountered in statistical physics, especially in the context of Bose-Einstein and Fermi-Dirac statistics. *(Will probably be useful to about two people on the planet.)*
+This package provides functionality to automatically recognize and evaluate a class of definite integrals frequently encountered in statistical physics, especially in the context of Bose-Einstein and Fermi-Dirac statistics. *(Will probably be useful to about two people on the planet.)*
 
 These integrals have the general form:
 
