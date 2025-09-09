@@ -19,19 +19,25 @@ The module recognizes such integrals symbolically and returns an exact result us
 
 --
 ## Example
+If we try to evaluate the following integral in Sympy, we won't get very far:
 
 $$I := \int_0^\infty\frac{x^3}{e^x - 1}\mathrm{d}x$$
 
 ```python
 In [1]: from sympy import symbols, Integral, exp, oo
-   ...: from bosefermi import bose_fermi_integral
-   ...:
-   ...: x = symbols("x")
+   ...: x = symbols('x')
    ...: I = Integral(x**3 / (exp(x) - 1), (x, 0, oo))
+   ...: I.doit()
+Out[1]: Integral(x**3/(exp(x) - 1), (x, 0, oo))
+
+```
+
+This is where our Bose-Fermi Integral Evaluator comes into play:
+
+```python
+In [2]: from bosefermi import bose_fermi_integral
    ...: bose_fermi_integral(I)
-
-Out[1]: pi**4/15
-
+Out[2]: pi**4/15
 ```
 
 Result:
@@ -42,9 +48,9 @@ $$I = \frac{\pi^4}{15}$$
 ## Performance
 ```python
 %%timeit
-bose_fermi_integral(expr)
+bose_fermi_integral(I)
 
-1.66 ms ± 6.1 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
+1.37 ms ± 30.2 μs per loop (mean ± std. dev. of 7 runs, 1,000 loops each)
 ```
 
 ---
