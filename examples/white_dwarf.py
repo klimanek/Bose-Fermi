@@ -19,59 +19,9 @@ Key Integrals:
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sympy import Integral, Mul, N, Pow, S, exp, gamma, oo, symbols, zeta
+from sympy import Integral, N, S, exp, gamma, oo, symbols
 
-
-# Our Bose-Fermi solver (simplified version for this example)
-def bose_fermi_integral(expr, debug=False):
-    """
-    Simplified version of our solver for demonstration.
-    Handles Fermi-Dirac integrals of the form ∫ x^p / (exp(x) + 1) dx.
-    """
-    x_var = expr.variables[0]
-    integrand = expr.function
-    
-    num, denom = integrand.as_numer_denom()
-    
-    # Robustly extract power p from numerator (expecting x^p)
-    p = None
-    if isinstance(num, Pow) and num.base == x_var:
-        p = num.exp
-    elif num == x_var:
-        p = S(1)
-    elif num.is_constant: # Handle cases like 1/(exp(x)+1) where p=0
-        p = S(0)
-    elif isinstance(num, Mul): # Handle cases like c*x^p
-        for arg in num.args:
-            if isinstance(arg, Pow) and arg.base == x_var:
-                p = arg.exp
-                break
-            elif arg == x_var:
-                p = S(1)
-                break
-    
-    if p is None:
-        if debug:
-            print(f"Numerator '{num}' not in expected x^p format.")
-        return expr  # Can't handle
-    
-    # Robustly check if denominator is exp(x) + 1 (Fermi-Dirac)
-    # Allows for exp(x) + 1 or 1 + exp(x)
-    if (denom == exp(x_var) + 1) or (denom == 1 + exp(x_var)):
-        if debug:
-            print(f"Recognized Fermi-Dirac integral: ∫ {x_var}^{p}/(exp({x_var}) + 1) d{x_var}")
-        
-        # Return exact result using Dirichlet eta function
-        # η(s) = (1 - 2^(1-s)) * ζ(s)
-        result = (1 - 1/2**p) * gamma(p + 1) * zeta(p + 1)
-        if debug:
-            print(f"Result: {result}")
-        return result
-    else:
-        if debug:
-            print(f"Denominator '{denom}' not in expected exp(x) + 1 format.")
-    
-    return expr  # Not recognized or not in expected format
+from bosefermi.core import bose_fermi_integral
 
 
 def white_dwarf_structure_example():
