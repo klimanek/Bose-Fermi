@@ -12,8 +12,9 @@ Physical Background:
 - Above this limit, the star collapses into a neutron star or black hole
 
 Key Integrals:
-- Degenerate gas pressure: ∫ x^(5/2)/(e^x + 1) dx
+- Particle density: ∫ x^(1/2)/(e^x + 1) dx
 - Energy density: ∫ x^(3/2)/(e^x + 1) dx
+- Pressure (non-relativistic): P = (2/3)·ε, the same F_{3/2} moment
 - Thermal corrections at finite temperature
 """
 
@@ -74,11 +75,15 @@ def white_dwarf_structure_example():
     print(f"Numerical: {N(energy_result, 6)}")
 
     # 3. Pressure (most important for hydrostatic equilibrium!)
+    # For a non-relativistic gas P = (2/3)*epsilon, so pressure is the same
+    # F_{3/2} moment as the energy density (the F_{5/2} moment belongs to
+    # transport integrals, not to pressure).
     print("\n3. Degenerate gas pressure:")
-    pressure_integral = Integral(x ** (S(5) / 2) / (exp(x) + 1), (x, 0, oo))
-    print(f"P ∝ ∫₀^∞ x^(5/2)/(e^x + 1) dx = {pressure_integral}")
+    print("For non-relativistic electrons P = (2/3)·ε:")
+    pressure_integral = Integral(x ** (S(3) / 2) / (exp(x) + 1), (x, 0, oo))
+    print(f"P ∝ (2/3) ∫₀^∞ x^(3/2)/(e^x + 1) dx = (2/3)·{pressure_integral}")
 
-    pressure_result = bose_fermi_integral(pressure_integral)
+    pressure_result = S(2) / 3 * bose_fermi_integral(pressure_integral)
     print(f"Result: {pressure_result}")
     print(f"Numerical: {N(pressure_result, 6)}")
 
@@ -126,10 +131,10 @@ def chandrasekhar_limit_calculation():
     # Different compositions
     print("\nComposition dependence:")
     compositions = {
-        "He": 2.0,  # Helium nuclei
-        "C-O": 2.0,  # Carbon-oxygen
-        "O-Ne-Mg": 2.15,  # Heavier elements
-        "Fe": 2.15,  # Iron nuclei (theoretical)
+        "He": 2.0,  # Helium nuclei: A/Z = 4/2
+        "C-O": 2.0,  # Carbon-oxygen: A/Z = 12/6 = 16/8
+        "O-Ne-Mg": 2.0,  # O, Ne and Mg all have A/Z = 2
+        "Fe": 2.15,  # Iron nuclei: A/Z = 56/26 (theoretical)
     }
 
     for comp, mu_val in compositions.items():
@@ -161,19 +166,22 @@ def temperature_effects():
 
     # Expand for small T/E_F
     print("For T << E_F, we can use Sommerfeld expansion:")
-    print("P(T) = P(0) * [1 + (π²/12)*(k_B*T/E_F)² + ...]")
+    print("P(T) = P(0) * [1 + (5π²/12)*(k_B*T/E_F)² + ...]")
+    print("(the π²/12 coefficient belongs to the chemical potential, not to P)")
 
-    # Our integral for T=0 (step function limit)
-    print("\nComparison:")
-    pressure_T0 = Integral(x ** (S(5) / 2) / (exp(x) + 1), (x, 0, oo))
+    # Same F_{3/2} moment as the energy density (P = 2/3 * epsilon)
+    print("\nComparison of the same F_{3/2} moment:")
+    pressure_T0 = Integral(x ** (S(3) / 2) / (exp(x) + 1), (x, 0, oo))
     pressure_result = bose_fermi_integral(pressure_T0)
 
-    # For comparison: classical gas would give different result
-    classical_result = gamma(S(7) / 2)  # ∫ x^(5/2) dx
+    # Boltzmann weight instead of the Fermi-Dirac occupation factor
+    classical_result = gamma(S(5) / 2)  # ∫₀^∞ x^(3/2) e^(-x) dx
 
-    print(f"Quantum degenerate: {N(pressure_result, 6)}")
-    print(f"Classical gas: {N(classical_result, 6)}")
-    print(f"Ratio (Quantum/Classical): {N(pressure_result / classical_result, 4)}")
+    print(f"Fermi-Dirac (μ = 0):     {N(pressure_result, 6)}")
+    print(f"Boltzmann (same moment): {N(classical_result, 6)}")
+    print(f"Ratio F-D/Boltzmann:     {N(pressure_result / classical_result, 4)}")
+    print("(= η(5/2) = (1 - 2^(-3/2))·ζ(5/2); this compares the excitation")
+    print(" factors only, it is not a physical gas-to-gas comparison)")
 
     return pressure_result
 
@@ -222,12 +230,16 @@ def plot_white_dwarf_properties():
 
     density_integrand = safe_fermi_integrand(x, 0.5)  # n_e
     energy_integrand = safe_fermi_integrand(x, 1.5)  # ε
-    pressure_integrand = safe_fermi_integrand(x, 2.5)  # P
+    pressure_integrand = (2 / 3) * energy_integrand  # P = (2/3) ε
 
     ax2.plot(x, density_integrand, "b-", linewidth=2, label="Density: x^(1/2)/(e^x+1)")
     ax2.plot(x, energy_integrand, "g-", linewidth=2, label="Energy: x^(3/2)/(e^x+1)")
     ax2.plot(
-        x, pressure_integrand, "r-", linewidth=2, label="Pressure: x^(5/2)/(e^x+1)"
+        x,
+        pressure_integrand,
+        "r--",
+        linewidth=2,
+        label="Pressure: (2/3)·x^(3/2)/(e^x+1)",
     )
 
     ax2.set_xlabel("x = E/(k_B*T)")
@@ -393,14 +405,14 @@ def main():
     print("=" * 45)
     print("Successfully applied our Bose-Fermi solver to:")
     print("   • White dwarf structure")
-    print("   • Chandrasekhar limit (~1.46 M☉)")
+    print("   • Chandrasekhar limit (~{:.2f} M☉)".format(float(M_ch)))
     print("   • Quantum pressure of degenerate electrons")
     print("   • Temperature corrections to T=0 approximation")
 
     print("\nKey Fermi-Dirac integrals:")
     print(f"   • Density: ∫ x^(1/2)/(e^x+1) dx = {N(density_res, 4)}")
     print(f"   • Energy: ∫ x^(3/2)/(e^x+1) dx = {N(energy_res, 4)}")
-    print(f"   • Pressure: ∫ x^(5/2)/(e^x+1) dx = {N(pressure_res, 4)}")
+    print(f"   • Pressure: (2/3)∫ x^(3/2)/(e^x+1) dx = {N(pressure_res, 4)}")
 
     print("\nPhysical significance:")
     print("   • These integrals determine the equation of state P(ρ)")
