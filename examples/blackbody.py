@@ -71,11 +71,15 @@ def planck_blackbody_example():
     print(f"Numerical: {float(result):.6f}")
 
     # Stefan-Boltzmann Law
-    print("\nStefan-Boltzmann Law:")
-    stefan_boltzmann_const = 8 * pi**5 * k_B**4 / (15 * h**3 * c**3)
+    print("\nEnergy density and Stefan-Boltzmann Law:")
+    print("Integrating over all frequencies gives the energy density")
+    print("u(T) = a·T⁴, where a = 8π⁵k_B⁴/(15h³c³) is the radiation constant")
+    radiation_constant = 8 * pi**5 * k_B**4 / (15 * h**3 * c**3)
+    print(f"Radiation constant: a = {radiation_constant}")
 
-    print("Total energy: U(T) = σ·T⁴")
-    print("where σ = 8π⁵k_B⁴/(15h³c³) = Stefan-Boltzmann constant")
+    print("\nThe radiated flux (Stefan-Boltzmann law) is F(T) = (c/4)·u(T) = σ·T⁴")
+    print("with σ = a·c/4 = 2π⁵k_B⁴/(15h³c²) the Stefan-Boltzmann constant")
+    stefan_boltzmann_const = radiation_constant * c / 4
     print(f"Stefan-Boltzmann constant: σ = {stefan_boltzmann_const}")
 
     return standard_integral, result
@@ -144,7 +148,7 @@ def plot_planck_distribution():
         y,
         alpha=0.3,
         color="lightblue",
-        label=f"$\int$ = Area = $\\pi^4/15$ ≈ {float(pi**4 / 15):.3f}",
+        label=rf"$\int$ = Area = $\pi^4/15$ ≈ {float(pi**4 / 15):.3f}",
     )
     plt.legend()
 
@@ -164,8 +168,9 @@ def plot_planck_distribution():
     for T_val, color in zip(temperatures, colors):
         x_real = h_val * nu_hz / (k_B_val * T_val)
         y_real = planck_dimensionless(x_real)
-        # Scale for better visualization
-        y_real_scaled = y_real * T_val**4 / 6000**4  # Relative scaling
+        # Spectral density u_nu ∝ T**3 * x**3/(e**x - 1); only the total
+        # energy (the integral over nu) scales as T**4.
+        y_real_scaled = y_real * (T_val / 6000) ** 3
         plt.plot(
             nu_hz / 1e14,
             y_real_scaled,
@@ -175,7 +180,7 @@ def plot_planck_distribution():
         )
 
     plt.xlabel("Frequency ($10^{14}$ Hz)")
-    plt.ylabel("Spectral density (scaled)")
+    plt.ylabel("Spectral density u$_\\nu$ (scaled to 6000 K)")
     plt.title("Planck Distribution for Different Temperatures")
     plt.grid(True, alpha=0.3)
     plt.legend()
@@ -422,7 +427,11 @@ if __name__ == "__main__":
 
     print("\nFinal Results:")
     for key, value in results.items():
-        if hasattr(value, "evalf"):
+        if isinstance(value, Integral):
+            # Keep the unevaluated integral unevaluated instead of letting
+            # float() trigger a silent numeric evalf().
+            print(f"   {key}: {value}")
+        elif hasattr(value, "evalf"):
             print(f"   {key}: {value} = {float(value):.8f}")
         else:
             print(f"   {key}: {float(value):.8f}")
