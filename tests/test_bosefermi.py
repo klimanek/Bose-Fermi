@@ -376,34 +376,29 @@ class TestIntegralAnalyzer:
         assert result.const_factor == S(2)
     
     def test_analyze_non_matching_integrals(self):
-        """Test that non-matching integrals return original expression."""
+        """Test that non-matching integrals return None."""
         # Standard polynomial integral
         integral = Integral(x**2, (x, 0, 1))
-        result = self.analyzer.analyze(integral)
-        assert result == integral
-        
+        assert self.analyzer.analyze(integral) is None
+
         # Trigonometric integral
         integral = Integral(sin(x), (x, 0, pi))
-        result = self.analyzer.analyze(integral)
-        assert result == integral
-        
+        assert self.analyzer.analyze(integral) is None
+
         # Wrong denominator pattern
         integral = Integral(x/(x**2 + 1), (x, 0, oo))
-        result = self.analyzer.analyze(integral)
-        assert result == integral
-    
+        assert self.analyzer.analyze(integral) is None
+
     def test_analyze_invalid_cases(self):
         """Test analysis of invalid cases."""
         # Negative power: as_numer_denom moves x**-2 into the denominator, so
         # the numerator is a constant and the form does not match.
         integral = Integral(x**(-2)/(exp(x) + 1), (x, 0, oo))
-        result = self.analyzer.analyze(integral)
-        assert result == integral
-        
+        assert self.analyzer.analyze(integral) is None
+
         # Complex numerator with variable
         integral = Integral(sin(x)*x/(exp(x) + 1), (x, 0, oo))
-        result = self.analyzer.analyze(integral)
-        assert result == integral
+        assert self.analyzer.analyze(integral) is None
 
 
 class TestIntegralPattern:
@@ -461,22 +456,20 @@ def test_validator_integration_with_analyzer():
     
     for integral in valid_cases:
         result = analyzer.analyze(integral)
-        # Should either return a pattern or the original integral, but not None
-        assert result is not None
-        assert isinstance(result, (Integral, IntegralPattern))
-    
+        assert isinstance(result, IntegralPattern)
+
     # Test cases that should fail validation
     invalid_cases = [
         Integral(x**2, (x, 0, 1)),  # Finite limits
         Integral(x*y, (x, 0, oo), (y, 0, oo)),  # Multiple variables
         "not an integral",  # Not an Integral object
     ]
-    
+
     for case in invalid_cases:
         if isinstance(case, Integral):
             result = analyzer.analyze(case)
-            # Should return original integral when validation fails
-            assert result == case
+            # Validation failure means "not recognised"
+            assert result is None
         # Note: analyzer.analyze expects Integral, so string case would cause error
 
 
@@ -502,7 +495,7 @@ def test_integration_workflow():
             for prop, value in expected_props.items():
                 assert getattr(result, prop) == value, f"Property {prop} mismatch for {integral}"
         else:
-            assert result == integral, f"Expected original integral for {integral}"
+            assert result is None, f"Expected no pattern for {integral}"
 
 
 def test_edge_cases_and_robustness():

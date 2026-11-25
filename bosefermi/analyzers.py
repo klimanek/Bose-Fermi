@@ -180,7 +180,7 @@ class IntegralAnalyzer:
         """Setup debug logger."""
         return make_logger("BoseFermi.Analyzer", self.debug, "ANALYZER")
 
-    def analyze(self, expr: Integral) -> Integral | IntegralPattern:
+    def analyze(self, expr: Integral) -> Optional[IntegralPattern]:
         """
         Analyze an integral and return a pattern if recognized.
 
@@ -191,7 +191,7 @@ class IntegralAnalyzer:
             IntegralPattern if recognized, None otherwise
         """
         if not self.validator.validate_all(expr):
-            return expr
+            return None
 
         var = expr.variables[0]
         integrand = expr.function
@@ -206,23 +206,23 @@ class IntegralAnalyzer:
         power, const_factor = self.matcher.extract_power_and_coefficient(num, var)
 
         if not self.validator.validate_power_non_negative(power):
-            return expr
+            return None
 
         self.logger.debug(f"Extracted: power={power}, const_factor={const_factor}")
 
         # Check if constant factor actually doesn't depend on var
         if const_factor.has(var):
             self.logger.debug("Numerator contains variable in non-power form")
-            return expr
+            return None
 
         # Match denominator pattern
         pattern_match = self.matcher.match_exponential_denominator(denom, var)
         if pattern_match is None:
-            return expr
+            return None
 
         a, b, sign, scale = pattern_match
 
         if not self.validator.validate_coefficient_nonzero(a):
-            return expr
+            return None
 
         return IntegralPattern(power, a, b, sign, scale * const_factor)
