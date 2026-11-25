@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sympy import Integral, N, S, exp, gamma, oo, symbols
 
-from bosefermi.core import bose_fermi_integral
+from bosefermi import bose_fermi_integral
 
 
 def white_dwarf_structure_example():

@@ -3,7 +3,7 @@ Example usage of the modular Bose-Fermi integral evaluator.
 """
 
 from sympy import symbols, oo, Integral, exp, pi
-from bosefermi.core import bose_fermi_integral
+from bosefermi import bose_fermi_integral
 
 
 def main():

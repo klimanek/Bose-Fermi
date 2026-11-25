@@ -15,7 +15,7 @@ Physical background:
 
 from sympy import Integral, N, S, exp, gamma, oo, plot, sqrt, symbols
 
-from bosefermi.core import bose_fermi_integral
+from bosefermi import bose_fermi_integral
 
 
 def fermi_gas_energy_example():
@@ -69,7 +69,7 @@ def fermi_gas_energy_example():
     print(f"\n∫₀^∞ x^(3/2)/(e^x + 1) dx = {key_integral}")
 
     print("\nOur Bose-Fermi Solver in Action:")
-    result = bose_fermi_integral(key_integral, debug=True)
+    result = bose_fermi_integral(key_integral)
 
     print("\nExact Result:")
     print(f"∫₀^∞ x^(3/2)/(e^x + 1) dx = {result}")
@@ -257,6 +257,12 @@ def main():
 
     # Main energy calculation
     integral, result = fermi_gas_energy_example()
+
+    # Comparison of the different moments
+    compare_fermi_integrals()
+
+    # Temperature dependence and the Sommerfeld expansion
+    temperature_scaling_demo()
 
     # Visualize the integrands
     plot_fermi_dirac_integrands()
