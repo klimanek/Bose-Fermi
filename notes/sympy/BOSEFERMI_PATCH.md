@@ -88,7 +88,7 @@ Podporované tvary:
 | $\int_0^\infty \frac{x^p}{e^{ax+b}+1}dx$ | $-\frac{\Gamma(p+1)}{a^{p+1}}\mathrm{Li}_{p+1}(-e^{-b})$ |
 | $b=0$ (bosony / fermiony) | $\Gamma(p+1)\zeta(p+1)$ / $\Gamma(p+1)\eta(p+1)$ |
 | $p=0$, $b=0$ (fermiony) | $\ln 2$ |
-| $A e^{ax+b}+C$ | normalizace na $C\left(e^{ax+b+\log|A/C|}\pm1\right)$ |
+| $A e^{ax+b}+C$ | normalizace na $C\big(e^{ax+b+\log\lvert A/C\rvert}\pm 1\big)$ |
 
 Podmínky: $a>0$; bosony navíc $p>0$ a $b\ge 0$; fermiony $p>-1$ (libovolné
 reálné $b$). Když podmínky neplatí (nebo tvar nesedí), háček vrátí `None`
