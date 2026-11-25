@@ -93,15 +93,18 @@ class TestIntegralValidator:
         assert self.validator.validate_power_non_negative(0.5)
         assert self.validator.validate_power_non_negative(Rational(1, 2))
         
-        # Symbolic powers - validator doesn't check assumptions, so they pass
+        # Symbolic powers: a known sign is honoured, an unknown sign accepted
         n_pos = Symbol('n', positive=True)
         n_neg = Symbol('n', negative=True)
         n_unknown = Symbol('n')
-        
-        # Current implementation doesn't check symbolic assumptions
+
         assert self.validator.validate_power_non_negative(n_pos)
-        assert self.validator.validate_power_non_negative(n_neg)  # This passes in current implementation
+        assert not self.validator.validate_power_non_negative(n_neg)
         assert self.validator.validate_power_non_negative(n_unknown)
+
+        # SymPy numbers used to slip through the isinstance(int, float) check
+        assert not self.validator.validate_power_non_negative(S(-2))
+        assert not self.validator.validate_power_non_negative(Rational(-1, 2))
         
         # None input should fail
         assert not self.validator.validate_power_non_negative(None)

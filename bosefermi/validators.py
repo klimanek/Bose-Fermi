@@ -2,7 +2,7 @@
 Input validation for Bose-Fermi integrals.
 """
 
-from sympy import Integral, oo
+from sympy import Integral, oo, sympify
 import logging
 
 from ._logging import make_logger
@@ -49,12 +49,18 @@ class IntegralValidator:
         return True
 
     def validate_power_non_negative(self, power) -> bool:
-        """Check if power is non-negative (required for gamma function)."""
+        """Check that the power is not known to be negative.
+
+        A negative power either diverges at x = 0 or is moved into the
+        denominator by ``as_numer_denom`` before this check.  Symbolic powers
+        whose sign is unknown are accepted.
+        """
         if power is None:
             self.logger.debug("Power could not be determined")
             return False
 
-        if isinstance(power, (int, float)) and power < 0:
+        power = sympify(power)
+        if power.is_negative is True:
             self.logger.debug(f"Negative power {power} not supported")
             return False
         return True
