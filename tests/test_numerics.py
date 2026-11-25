@@ -70,3 +70,27 @@ def test_fermi_dirac_p_zero(b):
 def test_fermi_dirac_p_zero_is_log_two():
     integral = Integral(1 / (exp(x) + 1), (x, 0, oo))
     assert bose_fermi_integral(integral) == log(2)
+
+
+def test_equivalent_denominator_forms():
+    """Scaled and float-offset denominators give the same values as quadrature."""
+    cases = [
+        (Integral(x / (2 * (exp(x) - 1)), (x, 0, oo)),
+         lambda t: t / (2 * (mp.e**t - 1))),
+        (Integral(x / (exp(x) / 2 + 1), (x, 0, oo)),
+         lambda t: t / (mp.e**t / 2 + 1)),
+        (Integral(x / (exp(x + 1) - exp(1)), (x, 0, oo)),
+         lambda t: t / (mp.e ** (t + 1) - mp.e)),
+        (Integral(x**2 / (exp(x) + 2), (x, 0, oo)),
+         lambda t: t**2 / (mp.e**t + 2)),
+        (Integral(x**2 / (exp(2 * x + 0.3) + 1), (x, 0, oo)),
+         lambda t: t**2 / (mp.e ** (2 * t + 0.3) + 1)),
+    ]
+    for integral, integrand in cases:
+        result = bose_fermi_integral(integral)
+        assert result != integral, f"integral was not recognized: {integral}"
+        numeric = complex(result.evalf(20))
+        expected = mp.quad(integrand, [0, 1, 5, 20, 50, mp.inf])
+        assert mp.almosteq(mp.mpf(numeric.real), expected, rel_eps=1e-9), (
+            f"{integral} -> {result} = {numeric.real}, quadrature = {expected}"
+        )

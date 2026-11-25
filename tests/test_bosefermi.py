@@ -4,7 +4,7 @@ Comprehensive tests for Bose-Fermi integral analysis components.
 
 from sympy import (
     Symbol, Integral, exp, pi, oo, S, sin,
-    Rational, E, I
+    Rational, E, I, log
 )
 from sympy.abc import x, y, t, a, b, c, n
 
@@ -266,50 +266,68 @@ class TestPatternMatcher:
         """Test matching basic exponential denominator patterns."""
         # Test exp(x) + 1
         result = self.matcher.match_exponential_denominator(exp(x) + 1, x)
-        assert result == (S.One, S.Zero, 1)
-        
+        assert result == (S.One, S.Zero, 1, S.One)
+
         # Test exp(x) - 1
         result = self.matcher.match_exponential_denominator(exp(x) - 1, x)
-        assert result == (S.One, S.Zero, -1)
-        
+        assert result == (S.One, S.Zero, -1, S.One)
+
         # Test exp(2*x) + 1
         result = self.matcher.match_exponential_denominator(exp(2*x) + 1, x)
-        assert result == (S(2), S.Zero, 1)
-        
+        assert result == (S(2), S.Zero, 1, S.One)
+
         # Test exp(-x) + 1
         result = self.matcher.match_exponential_denominator(exp(-x) + 1, x)
-        assert result == (S(-1), S.Zero, 1)
-    
+        assert result == (S(-1), S.Zero, 1, S.One)
+
     def test_match_exponential_denominator_with_offset(self):
         """Test matching patterns with offset in exponent."""
         # Test exp(x + 1) + 1
         result = self.matcher.match_exponential_denominator(exp(x + 1) + 1, x)
-        assert result == (S.One, S.One, 1)
-        
+        assert result == (S.One, S.One, 1, S.One)
+
         # Test exp(2*x - 3) - 1
         result = self.matcher.match_exponential_denominator(exp(2*x - 3) - 1, x)
-        assert result == (S(2), S(-3), -1)
-        
+        assert result == (S(2), S(-3), -1, S.One)
+
         # Test exp(a*x + b) + 1
         result = self.matcher.match_exponential_denominator(exp(a*x + b) + 1, x)
-        assert result == (a, b, 1)
-    
+        assert result == (a, b, 1, S.One)
+
+    def test_match_exponential_denominator_scaled_forms(self):
+        """A*exp(a*x+b) + C is normalised to exp(a*x + b') +- 1."""
+        # 2*(exp(x) - 1) = 2*exp(x) - 2 = -(-2)*(exp(x) - 1)
+        result = self.matcher.match_exponential_denominator(2*(exp(x) - 1), x)
+        assert result == (S.One, S.Zero, -1, S.Half)
+
+        # exp(x)/2 + 1 = exp(x - log(2)) + 1
+        result = self.matcher.match_exponential_denominator(exp(x)/2 + 1, x)
+        assert result == (S.One, -log(2), 1, S.One)
+
+        # exp(x + 1) - E = E*(exp(x) - 1)
+        result = self.matcher.match_exponential_denominator(exp(x + 1) - E, x)
+        assert result == (S.One, S.Zero, -1, 1/E)
+
+        # exp(x) + 2 = 2*(exp(x - log(2))/2 + 1)
+        result = self.matcher.match_exponential_denominator(exp(x) + 2, x)
+        assert result == (S.One, -log(2), 1, S.Half)
+
     def test_match_exponential_denominator_failures(self):
         """Test cases where pattern matching should fail."""
         # Test simple polynomial
         result = self.matcher.match_exponential_denominator(x**2 + 1, x)
         assert result is None
-        
-        # Test exp without ±1
-        result = self.matcher.match_exponential_denominator(exp(x) + 2, x)
-        assert result is None
-        
+
         # Test multiple exponentials
         result = self.matcher.match_exponential_denominator(exp(x) + exp(2*x) + 1, x)
         assert result is None
-        
+
         # Test constant exponential
         result = self.matcher.match_exponential_denominator(exp(5) + 1, x)
+        assert result is None
+
+        # Test two variable terms
+        result = self.matcher.match_exponential_denominator(x + 1, x)
         assert result is None
 
 

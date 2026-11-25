@@ -2,7 +2,7 @@
 Pattern analysis and matching for Bose-Fermi integrals.
 """
 
-from sympy import Integral, exp, Symbol, Wild, Pow, Mul, Add, S, logcombine
+from sympy import Integral, exp, Symbol, Wild, Pow, Mul, Add, S, log, logcombine
 from typing import Optional, Tuple
 import logging
 
@@ -61,12 +61,23 @@ class PatternMatcher:
 
     def match_exponential_denominator(
         self, denom: SymPyExpr, var: "Symbol"
-    ) -> Optional[Tuple[SymPyExpr, SymPyExpr, int]]:
+    ) -> Optional[Tuple[SymPyExpr, SymPyExpr, int, SymPyExpr]]:
         """
-        Match denominator patterns of the form exp(a*x + b) ± 1.
+        Match a denominator of the form ``A*exp(a*x + b) + C``.
+
+        The denominator is normalised to the canonical ``exp(a*x + b) +- 1``
+        form by pulling ``C`` in front of the integral:
+
+        * ``A/C > 0``: ``A*exp(a*x+b) + C = C*(exp(a*x + b + log(A/C)) + 1)``
+        * ``A/C < 0``: ``A*exp(a*x+b) + C = -C*(exp(a*x + b + log(-A/C)) - 1)``
+
+        This also covers the ``c*exp(a*x) + 1`` shapes SymPy produces by
+        auto-expanding exponents with float offsets, e.g. ``exp(2*x + 0.3)``.
 
         Returns:
-            Tuple of (a, b, sign) or None if no match found
+            Tuple ``(a, b, sign, scale)`` or ``None`` if no match was found.
+            ``sign`` is -1 for bosons and +1 for fermions; ``scale`` is the
+            constant ``1/C`` (or ``-1/C``) pulled in front of the integral.
         """
         # Simplify expressions like exp(a)*exp(b) to exp(a+b)
         denom = logcombine(denom, force=True)
@@ -76,20 +87,35 @@ class PatternMatcher:
             return None
 
         exp_term = None
-        sign_term = None
+        const_term = None
 
         for term in denom.args:
-            if term.func == exp:
+            _, rest = term.as_coeff_Mul()
+            if rest.func == exp:
+                if exp_term is not None:
+                    self.logger.debug(f"More than one exponential term in {denom}")
+                    return None
                 exp_term = term
-            elif term.is_number and term in [-1, 1]:
-                sign_term = term
+            elif term.is_number and not term.has(var):
+                if const_term is not None:
+                    self.logger.debug(f"More than one constant term in {denom}")
+                    return None
+                const_term = term
+            else:
+                self.logger.debug(f"Unsupported term {term} in denominator {denom}")
+                return None
 
-        if exp_term is None or sign_term is None:
-            self.logger.debug(f"Could not find exp(.) ± 1 pattern in {denom}")
+        if exp_term is None or const_term is None:
+            self.logger.debug(f"Could not find A*exp(.) + C pattern in {denom}")
+            return None
+
+        coefficient, exp_part = exp_term.as_coeff_Mul()
+        if not coefficient.is_number or coefficient.is_zero:
+            self.logger.debug(f"Non-numeric exponential coefficient in {exp_term}")
             return None
 
         # Extract and analyze the exponent
-        exp_arg = exp_term.args[0]
+        exp_arg = exp_part.args[0]
         self.logger.debug(f"Found exponential with argument: {exp_arg}")
 
         if not exp_arg.has(var):
@@ -119,10 +145,26 @@ class PatternMatcher:
             a = match[a_]
             b = match.get(b_, S.Zero)
 
+        # Normalise A*exp(a*x + b) + C to exp(a*x + b + shift) +- 1
+        ratio = coefficient / const_term
+        if ratio.is_positive:
+            sign = 1
+            shift = log(ratio)
+            scale = S.One / const_term
+        elif ratio.is_negative:
+            sign = -1
+            shift = log(-ratio)
+            scale = -S.One / const_term
+        else:
+            self.logger.debug(f"Cannot normalise denominator {denom}")
+            return None
+
+        b = b + shift
         self.logger.debug(
-            f"Matched pattern: exp({a}*{var} + {b}) {'+' if sign_term > 0 else '-'} 1"
+            f"Matched pattern: exp({a}*{var} + {b}) "
+            f"{'+' if sign > 0 else '-'} 1, scale={scale}"
         )
-        return a, b, int(sign_term)
+        return a, b, sign, scale
 
 
 class IntegralAnalyzer:
@@ -178,9 +220,9 @@ class IntegralAnalyzer:
         if pattern_match is None:
             return expr
 
-        a, b, sign = pattern_match
+        a, b, sign, scale = pattern_match
 
         if not self.validator.validate_coefficient_nonzero(a):
             return expr
 
-        return IntegralPattern(power, a, b, sign, const_factor)
+        return IntegralPattern(power, a, b, sign, scale * const_factor)
