@@ -23,6 +23,7 @@ import numpy as np
 from sympy import Integral, N, S, exp, gamma, oo, symbols
 
 from bosefermi import bose_fermi_integral
+from _plotting import show_or_save
 
 
 def white_dwarf_structure_example():
@@ -339,7 +340,7 @@ def plot_white_dwarf_properties():
         fontweight="bold",
         color="dimgray",
     )
-    plt.show()
+    show_or_save(fig, "white_dwarf_properties.png")
 
 
 def stellar_evolution_context():

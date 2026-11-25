@@ -16,6 +16,7 @@ Physical background:
 from sympy import Integral, N, S, exp, gamma, oo, plot, sqrt, symbols
 
 from bosefermi import bose_fermi_integral
+from _plotting import show_or_save_sympy_plot
 
 
 def fermi_gas_energy_example():
@@ -186,7 +187,7 @@ def plot_fermi_dirac_integrands():
     # Combine plots
     p1.extend(p2)
     p1.extend(p3)
-    p1.show()
+    show_or_save_sympy_plot(p1, "fermi_dirac_integrands.png")
 
     print("\nKey Features of the Plots:")
     print(

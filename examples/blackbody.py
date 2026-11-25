@@ -16,6 +16,7 @@ import numpy as np
 from sympy import Integral, exp, oo, pi, symbols
 
 from bosefermi import bose_fermi_integral
+from _plotting import show_or_save
 
 
 def planck_blackbody_example():
@@ -131,7 +132,7 @@ def plot_planck_distribution():
     y = planck_dimensionless(x)
 
     # Create the plot
-    plt.figure(figsize=(12, 8))
+    fig = plt.figure(figsize=(12, 8))
 
     # Main plot (dimensionless)
     plt.subplot(2, 2, 1)
@@ -237,7 +238,7 @@ def plot_planck_distribution():
         fontweight="bold",
         color="dimgray",
     )
-    plt.show()
+    show_or_save(fig, "planck_distribution.png")
 
 
 def stefan_boltzmann_temperature_dependence():
@@ -290,7 +291,7 @@ def stefan_boltzmann_temperature_dependence():
         fontweight="bold",
         color="dimgray",
     )
-    plt.show()
+    show_or_save(fig, "stefan_boltzmann.png")
 
 
 def physical_applications():

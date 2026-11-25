@@ -9,3 +9,6 @@ __pycache__/
 .ipynb_checkpoints/
 .pytest_cache
 .ruff_cache
+
+# Figures written by the examples when no GUI backend is available
+figures/
