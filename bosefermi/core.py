@@ -44,6 +44,7 @@ def bose_fermi_integral(expr: Integral, debug: bool = False) -> SymPyExpr:
     try:
         pattern = analyzer.analyze(expr)
         if pattern is None:
+            # Not recognised: hand the input back untouched, like Integral.doit().
             if debug:
                 analyzer.logger.debug(
                     "No pattern matched - returning original integral"

@@ -58,12 +58,13 @@ def test_edge_cases():
     ],
 )
 def test_unsupported_returns_original(integral):
-    assert bose_fermi_integral(integral) == integral
+    # Like Integral.doit(), an unevaluated input comes back as the same object.
+    assert bose_fermi_integral(integral) is integral
 
 
 def test_non_integral_input_is_returned_unchanged():
     expression = x**2
-    assert bose_fermi_integral(expression) == expression
+    assert bose_fermi_integral(expression) is expression
 
 
 def test_consistency():

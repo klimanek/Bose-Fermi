@@ -188,7 +188,12 @@ class IntegralAnalyzer:
             expr: SymPy Integral to analyze
 
         Returns:
-            IntegralPattern if recognized, None otherwise
+            IntegralPattern if recognized, None otherwise.
+
+        ``None`` is only the internal "not recognised" signal.  The public
+        :func:`bosefermi.core.bose_fermi_integral` turns it back into the
+        original integral, following SymPy's convention that an unevaluated
+        ``Integral`` (or any input) comes back unchanged.
         """
         if not self.validator.validate_all(expr):
             return None
