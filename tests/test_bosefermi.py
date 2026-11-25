@@ -322,37 +322,37 @@ class TestIntegralAnalyzer:
         # ∫ 1/(exp(x) + 1) dx
         integral = Integral(1/(exp(x) + 1), (x, 0, oo))
         result = self.analyzer.analyze(integral)
-        
-        if isinstance(result, IntegralPattern):
-            assert result.p == S.Zero
-            assert result.a == S.One
-            assert result.b == S.Zero
-            assert result.sign == 1
-            assert result.const_factor == S.One
-        
+
+        assert isinstance(result, IntegralPattern)
+        assert result.p == S.Zero
+        assert result.a == S.One
+        assert result.b == S.Zero
+        assert result.sign == 1
+        assert result.const_factor == S.One
+
         # ∫ x/(exp(x) - 1) dx
         integral = Integral(x/(exp(x) - 1), (x, 0, oo))
         result = self.analyzer.analyze(integral)
-        
-        if isinstance(result, IntegralPattern):
-            assert result.p == S.One
-            assert result.a == S.One
-            assert result.b == S.Zero
-            assert result.sign == -1
-            assert result.const_factor == S.One
+
+        assert isinstance(result, IntegralPattern)
+        assert result.p == S.One
+        assert result.a == S.One
+        assert result.b == S.Zero
+        assert result.sign == -1
+        assert result.const_factor == S.One
     
     def test_analyze_with_coefficients(self):
         """Test analysis with various coefficients."""
         # ∫ 2*x^2/(exp(3*x + 1) + 1) dx
         integral = Integral(2*x**2/(exp(3*x + 1) + 1), (x, 0, oo))
         result = self.analyzer.analyze(integral)
-        
-        if isinstance(result, IntegralPattern):
-            assert result.p == S(2)
-            assert result.a == S(3)
-            assert result.b == S.One
-            assert result.sign == 1
-            assert result.const_factor == S(2)
+
+        assert isinstance(result, IntegralPattern)
+        assert result.p == S(2)
+        assert result.a == S(3)
+        assert result.b == S.One
+        assert result.sign == 1
+        assert result.const_factor == S(2)
     
     def test_analyze_non_matching_integrals(self):
         """Test that non-matching integrals return original expression."""
@@ -373,11 +373,11 @@ class TestIntegralAnalyzer:
     
     def test_analyze_invalid_cases(self):
         """Test analysis of invalid cases."""
-        # Negative power (if validator rejects it)
+        # Negative power: as_numer_denom moves x**-2 into the denominator, so
+        # the numerator is a constant and the form does not match.
         integral = Integral(x**(-2)/(exp(x) + 1), (x, 0, oo))
         result = self.analyzer.analyze(integral)
-        # Should return original integral if validation fails
-        assert isinstance(result, (Integral, IntegralPattern))
+        assert result == integral
         
         # Complex numerator with variable
         integral = Integral(sin(x)*x/(exp(x) + 1), (x, 0, oo))
@@ -492,15 +492,15 @@ def test_edge_cases_and_robustness():
     # Test with different variables
     integral_t = Integral(t/(exp(t) + 1), (t, 0, oo))
     result = analyzer.analyze(integral_t)
-    assert isinstance(result, (Integral, IntegralPattern))
-    
+    assert isinstance(result, IntegralPattern)
+
     # Test with symbolic parameters
     integral_param = Integral(x**n/(exp(a*x + b) + 1), (x, 0, oo))
     result = analyzer.analyze(integral_param)
-    if isinstance(result, IntegralPattern):
-        assert result.p == n
-        assert result.a == a
-        assert result.b == b
+    assert isinstance(result, IntegralPattern)
+    assert result.p == n
+    assert result.a == a
+    assert result.b == b
     
     # Test extreme coefficient values
     power, coeff = matcher.extract_power_and_coefficient(1000*x**100, x)
