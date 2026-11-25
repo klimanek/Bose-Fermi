@@ -2,7 +2,10 @@
 Core functionality for Bose-Fermi integral evaluation.
 """
 
+import warnings
+
 from sympy import Integral, simplify
+
 from .analyzers import IntegralAnalyzer
 from .special_functions import SymPyExpr
 
@@ -57,7 +60,12 @@ def bose_fermi_integral(expr: Integral, debug: bool = False) -> SymPyExpr:
 
         return simplify(result)
 
-    except Exception as e:
-        if debug:
-            analyzer.logger.debug(f"Error during evaluation: {e}")
+    except Exception as exc:  # defensive: never break the caller's session
+        analyzer.logger.debug(f"Error during evaluation: {exc}")
+        warnings.warn(
+            f"bosefermi: could not evaluate {expr!r}; "
+            f"returning it unchanged ({type(exc).__name__}: {exc})",
+            RuntimeWarning,
+            stacklevel=2,
+        )
         return expr

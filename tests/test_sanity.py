@@ -71,6 +71,19 @@ def test_consistency():
     assert bose_fermi_integral(integral) == bose_fermi_integral(integral)
 
 
+def test_evaluation_errors_warn_and_return_the_integral(monkeypatch):
+    from bosefermi import core
+
+    def boom(self, expr):
+        raise ValueError("boom")
+
+    monkeypatch.setattr(core.IntegralAnalyzer, "analyze", boom)
+    integral = Integral(x**2 / (exp(x) - 1), (x, 0, oo))
+
+    with pytest.warns(RuntimeWarning, match="could not evaluate"):
+        assert core.bose_fermi_integral(integral) == integral
+
+
 def test_performance_sanity():
     integral = Integral(x**2 / (exp(x) - 1), (x, 0, oo))
     start = time.perf_counter()
