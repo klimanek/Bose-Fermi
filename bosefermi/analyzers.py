@@ -6,6 +6,7 @@ from sympy import Integral, exp, Symbol, Wild, Pow, Mul, Add, S, logcombine
 from typing import Optional, Tuple
 import logging
 
+from ._logging import make_logger
 from .patterns import IntegralPattern
 from .validators import IntegralValidator
 from .special_functions import SymPyExpr
@@ -20,16 +21,7 @@ class PatternMatcher:
 
     def _setup_logger(self) -> logging.Logger:
         """Setup debug logger."""
-        logger = logging.getLogger("BoseFermi.PatternMatcher")
-
-        if self.debug and not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter("MATCHER: %(message)s")
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
-
-        return logger
+        return make_logger("BoseFermi.PatternMatcher", self.debug, "MATCHER")
 
     def extract_power_and_coefficient(
         self, expr: SymPyExpr, var: "Symbol"
@@ -144,16 +136,7 @@ class IntegralAnalyzer:
 
     def _setup_logger(self) -> logging.Logger:
         """Setup debug logger."""
-        logger = logging.getLogger("BoseFermi.Analyzer")
-
-        if self.debug and not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter("ANALYZER: %(message)s")
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
-
-        return logger
+        return make_logger("BoseFermi.Analyzer", self.debug, "ANALYZER")
 
     def analyze(self, expr: Integral) -> Integral | IntegralPattern:
         """

@@ -5,6 +5,8 @@ Input validation for Bose-Fermi integrals.
 from sympy import Integral, oo
 import logging
 
+from ._logging import make_logger
+
 
 class IntegralValidator:
     """Validates integral expressions for Bose-Fermi evaluation."""
@@ -15,14 +17,7 @@ class IntegralValidator:
 
     def _setup_logger(self) -> logging.Logger:
         """Setup debug logger."""
-        logger = logging.getLogger("BoseFermi.Validator")
-        if self.debug and not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter("VALIDATOR: %(message)s")
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-            logger.setLevel(logging.DEBUG)
-        return logger
+        return make_logger("BoseFermi.Validator", self.debug, "VALIDATOR")
 
     def validate_integral_type(self, expr) -> bool:
         """Check if expression is a SymPy Integral."""
