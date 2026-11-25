@@ -1,0 +1,279 @@
+From 0c86800c2b6cc7effaf42eb8e4cb44da43f20338 Mon Sep 17 00:00:00 2001
+From: Oldrich Klimanek <oldrich.klimanek@gmail.com>
+Date: Wed, 25 Nov 2026 02:17:00 +0100
+Subject: [PATCH] integrals: evaluate Bose-Einstein and Fermi-Dirac definite
+ integrals
+
+Add sympy/integrals/bosefermi.py, which evaluates the definite integrals
+
+    Integral(x**p/(exp(a*x + b) - 1), (x, 0, oo))   (bosons)
+    Integral(x**p/(exp(a*x + b) + 1), (x, 0, oo))   (fermions)
+
+in closed form using gamma, zeta (or dirichlet_eta) and polylog.  For b = 0
+the results reduce to Gamma(p+1)*zeta(p+1) and Gamma(p+1)*eta(p+1); the
+special value p = 0, b = 0 for fermions is log(2).
+
+The Meijer G machinery cannot handle these integrands: the Mellin transform
+of 1/(exp(a*x + b) - 1) is a**(-s)*gamma(s)*zeta(s), which is not a Meijer G
+function.  Hook the new evaluator into _meijerint_definite_2, before the
+G-function rewriting is attempted; meijerint_definite already returns results
+that do not contain meijerg.
+
+The matcher also normalises scaled denominators A*exp(a*x + b) + C (which
+covers e.g. exp(2*x + 0.3), automatically expanded by SymPy into
+1.3498...*exp(2*x) + 1) and rejects forms where the integral diverges
+(a <= 0, p <= -1, or b < 0 for bosons).
+---
+ sympy/integrals/bosefermi.py            | 133 ++++++++++++++++++++++++
+ sympy/integrals/meijerint.py            |   9 ++
+ sympy/integrals/tests/test_bosefermi.py |  71 +++++++++++++
+ 3 files changed, 213 insertions(+)
+ create mode 100644 sympy/integrals/bosefermi.py
+ create mode 100644 sympy/integrals/tests/test_bosefermi.py
+
+diff --git a/sympy/integrals/bosefermi.py b/sympy/integrals/bosefermi.py
+new file mode 100644
+index 0000000..d37c0d4
+--- /dev/null
++++ b/sympy/integrals/bosefermi.py
+@@ -0,0 +1,133 @@
++r"""
++Definite integrals of Bose-Einstein and Fermi-Dirac type.
++
++This module evaluates integrals of the form
++
++.. math::
++
++    \int_0^\infty \frac{x^p}{e^{a x + b} \pm 1}\,\mathrm{d}x,
++
++which appear throughout statistical physics (Planck's law, the Fermi gas,
++white dwarfs, ...).  The result is expressed with the gamma function and the
++polylogarithm; for ``b = 0`` the polylogarithm reduces to the Riemann zeta
++function (bosons) or to the Dirichlet eta function (fermions).
++
++``meijerint`` cannot compute these integrals: the Mellin transform of
++``1/(exp(a*x + b) - 1)`` is ``a**(-s)*gamma(s)*zeta(s)`` (and similarly with
++the eta function), which is not a Meijer G function.  Therefore
++``_meijerint_definite_2`` calls :func:`bose_fermi_definite` before trying the
++Meijer G machinery.
++"""
++
++from sympy.core import Add, S, Wild
++from sympy.functions.elementary.exponential import exp, log
++from sympy.functions.special.gamma_functions import gamma
++from sympy.functions.special.zeta_functions import (
++    dirichlet_eta, polylog, zeta)
++from sympy.logic.boolalg import And
++
++__all__ = ["bose_fermi_definite"]
++
++
++def _match_denominator(den, x):
++    """Split ``A*exp(a*x + b) + C`` into ``(a, b, sign, scale)``.
++
++    ``sign`` is +1 when ``A/C > 0`` and -1 when ``A/C < 0``, while ``scale``
++    is the overall constant ``1/C`` (or ``-1/C``).  ``None`` is returned when
++    ``den`` has a different shape; ``A`` and ``C`` must be numbers.
++    """
++    terms = Add.make_args(den)
++    if len(terms) != 2:
++        return None
++
++    exp_term = const_term = None
++    for term in terms:
++        if term.as_coeff_Mul()[1].func is exp:
++            if exp_term is not None:
++                return None
++            exp_term = term
++        elif term.is_number:
++            if const_term is not None:
++                return None
++            const_term = term
++        else:
++            return None
++
++    if exp_term is None or const_term is None:
++        return None
++
++    coefficient, exp_part = exp_term.as_coeff_Mul()
++    if not coefficient.is_number or coefficient.is_zero:
++        return None
++
++    alpha = Wild('alpha', exclude=[x])
++    beta = Wild('beta', exclude=[x])
++    match = exp_part.args[0].match(alpha*x + beta)
++    if match:
++        a = match[alpha]
++        b = match.get(beta, S.Zero)
++    elif exp_part.args[0] == x:
++        a, b = S.One, S.Zero
++    else:
++        return None
++
++    ratio = coefficient/const_term
++    if ratio.is_positive:
++        return a, b + log(ratio), S.One, S.One/const_term
++    if ratio.is_negative:
++        return a, b + log(-ratio), S.NegativeOne, -S.One/const_term
++    return None
++
++
++def bose_fermi_definite(f, x):
++    """Evaluate ``Integral(f, (x, 0, oo))`` for a Bose-Fermi integrand.
++
++    Returns ``(result, cond)`` in the same way as
++    :func:`sympy.integrals.meijerint.meijerint_definite`, or ``None`` when
++    ``f`` is not of the supported form or when the integral diverges.
++
++    Examples
++    ========
++
++    >>> from sympy import exp, integrate, oo, symbols
++    >>> x = symbols('x', positive=True)
++    >>> integrate(x**3/(exp(x) - 1), (x, 0, oo))
++    pi**4/15
++    """
++    num, den = f.as_numer_denom()
++    coefficient, num = num.as_coeff_Mul()
++
++    if num == 1:
++        p = S.Zero
++    elif num == x:
++        p = S.One
++    elif num.is_Pow and num.base == x:
++        p = num.exp
++    else:
++        return None
++
++    den_match = _match_denominator(den, x)
++    if den_match is None:
++        return None
++    a, b, sign, scale = den_match
++
++    cond = And(a > 0, p > -1)
++    if sign is S.NegativeOne:
++        cond = And(cond, p > 0, b >= 0)
++    if cond is S.false:
++        return None
++
++    prefactor = coefficient*scale*gamma(p + 1)/a**(p + 1)
++    if sign is S.One:
++        # fermions: 1/(e^(a*x+b) + 1)
++        if b == 0:
++            special = dirichlet_eta(p + 1)
++        elif p == 0:
++            special = log(1 + exp(-b))
++        else:
++            special = -polylog(p + 1, -exp(-b))
++    else:
++        # bosons: 1/(e^(a*x+b) - 1)
++        special = zeta(p + 1) if b == 0 else polylog(p + 1, exp(-b))
++
++    return prefactor*special, cond
+diff --git a/sympy/integrals/meijerint.py b/sympy/integrals/meijerint.py
+index 06c1d61..fa8af4c 100644
+--- a/sympy/integrals/meijerint.py
++++ b/sympy/integrals/meijerint.py
+@@ -65,6 +65,7 @@ from sympy.functions.special.gamma_functions import gamma
+ from sympy.functions.special.hyper import hyper, meijerg
+ from sympy.functions.special.singularity_functions import SingularityFunction
+ from .integrals import Integral
++from .bosefermi import bose_fermi_definite
+ from sympy.logic.boolalg import And, Or, BooleanAtom, Not, BooleanFunction
+ from sympy.polys import cancel, factor
+ from sympy.utilities.iterables import multiset_partitions
+@@ -1971,6 +1972,14 @@ def _meijerint_definite_2(f, x):
+     if f == 0:
+         return S.Zero, True
+ 
++    # Bose-Einstein and Fermi-Dirac integrals have a Mellin transform that
++    # involves zeta/polylog functions and is not a Meijer G function, so the
++    # G-function machinery below cannot find them.  Handle them directly.
++    special = bose_fermi_definite(f, x)
++    if special is not None:
++        _debug('Recognised a Bose-Fermi integral')
++        return special
++
+     for g, explanation in _guess_expansion(f, x):
+         _debug('Trying', explanation)
+         res = _meijerint_definite_3(g, x)
+diff --git a/sympy/integrals/tests/test_bosefermi.py b/sympy/integrals/tests/test_bosefermi.py
+new file mode 100644
+index 0000000..b8cc7ac
+--- /dev/null
++++ b/sympy/integrals/tests/test_bosefermi.py
+@@ -0,0 +1,71 @@
++"""Tests for the Bose-Einstein and Fermi-Dirac definite integrals."""
++
++from sympy import (
++    S, exp, gamma, integrate, Integral, log, oo, pi, simplify, symbols, zeta)
++from sympy.functions.special.zeta_functions import dirichlet_eta, polylog
++from sympy.integrals.bosefermi import bose_fermi_definite
++
++x = symbols('x', positive=True)
++a, p = symbols('a p', positive=True)
++
++
++def test_fermi_dirac_zero_offset():
++    assert integrate(1/(exp(x) + 1), (x, 0, oo)) == log(2)
++    assert integrate(x**2/(exp(x) + 1), (x, 0, oo)) == gamma(3)*dirichlet_eta(3)
++    assert simplify(
++        integrate(x**p/(exp(x) + 1), (x, 0, oo))
++        - gamma(p + 1)*dirichlet_eta(p + 1)) == 0
++
++
++def test_bose_einstein_zero_offset():
++    assert integrate(x**3/(exp(x) - 1), (x, 0, oo)) == pi**4/15
++    assert integrate(x**2/(exp(x) - 1), (x, 0, oo)) == 2*zeta(3)
++    assert simplify(
++        integrate(x**p/(exp(a*x) - 1), (x, 0, oo))
++        - gamma(p + 1)*zeta(p + 1)/a**(p + 1)) == 0
++
++
++def test_nonzero_offset():
++    assert simplify(
++        integrate(x**2/(exp(x + 1) + 1), (x, 0, oo))
++        + gamma(3)*polylog(3, -exp(-1))) == 0
++    assert simplify(
++        integrate(x**2/(exp(x + 1) - 1), (x, 0, oo))
++        - gamma(3)*polylog(3, exp(-1))) == 0
++    assert integrate(1/(exp(x + 1) + 1), (x, 0, oo)) == log(1 + exp(-1))
++
++
++def test_scaled_denominators():
++    assert integrate(x/(2*(exp(x) - 1)), (x, 0, oo)) == pi**2/12
++    assert integrate(x/(exp(x)/2 + 1), (x, 0, oo)) == -polylog(2, -S(2))
++    assert integrate(x**2/(exp(x) + 2), (x, 0, oo)) == -polylog(3, -S(2))
++
++
++def test_float_offset():
++    result = integrate(x**2/(exp(2*x + 0.3) + 1), (x, 0, oo))
++    assert abs(result.evalf() - 0.17095710982756174) < 1e-10
++
++
++def test_unsupported_forms():
++    assert bose_fermi_definite(x**2/(exp(x**2) - 1), x) is None
++    assert bose_fermi_definite(x/(x**2 + 1), x) is None
++    assert bose_fermi_definite(exp(-x), x) is None
++
++
++def test_divergent_integrals_are_rejected():
++    # p = 0 for bosons and a negative offset for bosons both diverge
++    assert bose_fermi_definite(1/(exp(x) - 1), x) is None
++    assert bose_fermi_definite(x/(exp(x - 1) - 1), x) is None
++
++
++def test_meijerg_false_leaves_the_integral_unevaluated():
++    result = integrate(x**3/(exp(x) - 1), (x, 0, oo), meijerg=False)
++    assert isinstance(result, Integral)
++    assert simplify(result.function - x**3/(exp(x) - 1)) == 0
++
++
++def test_conditions_are_returned():
++    result, cond = integrate(
++        x**p/(exp(a*x) - 1), (x, 0, oo), conds='separate')
++    assert simplify(result - gamma(p + 1)*zeta(p + 1)/a**(p + 1)) == 0
++    assert cond == True
+-- 
+2.56.0
+
