@@ -224,5 +224,12 @@ class IntegralAnalyzer:
 
         if not self.validator.validate_coefficient_nonzero(a):
             return None
+        if not self.validator.validate_coefficient_positive(a):
+            return None
+        if (
+            sign == IntegralPattern.BOSE_EINSTEIN
+            and not self.validator.validate_bose_einstein_offset(b)
+        ):
+            return None
 
         return IntegralPattern(power, a, b, sign, scale * const_factor)

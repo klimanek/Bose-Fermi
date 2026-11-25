@@ -141,6 +141,22 @@ class TestIntegralValidator:
         result = self.validator.validate_coefficient_nonzero(None)
         assert isinstance(result, bool)  # Just check it returns a bool
     
+    def test_validate_coefficient_positive(self):
+        """Test that a non-positive exponential coefficient is rejected."""
+        assert self.validator.validate_coefficient_positive(S.One)
+        assert self.validator.validate_coefficient_positive(S(3))
+        assert self.validator.validate_coefficient_positive(a)  # unknown sign
+        assert not self.validator.validate_coefficient_positive(S(-1))
+        assert not self.validator.validate_coefficient_positive(S.Zero)
+
+    def test_validate_bose_einstein_offset(self):
+        """A negative offset puts a pole on the integration path for bosons."""
+        assert self.validator.validate_bose_einstein_offset(S.Zero)
+        assert self.validator.validate_bose_einstein_offset(S(2))
+        assert self.validator.validate_bose_einstein_offset(b)  # unknown sign
+        assert not self.validator.validate_bose_einstein_offset(S(-1))
+        assert not self.validator.validate_bose_einstein_offset(Rational(-1, 2))
+
     def test_validate_all_comprehensive(self):
         """Test the validate_all method with various cases."""
         # Perfect Bose-Fermi integral - should pass all validations

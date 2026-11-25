@@ -89,3 +89,21 @@ def test_performance_sanity():
     start = time.perf_counter()
     bose_fermi_integral(integral)
     assert time.perf_counter() - start < 5.0
+
+
+def test_negative_decay_rate_returns_original():
+    negative_a = symbols("negative_a", negative=True)
+    integral = Integral(x / (exp(negative_a * x) + 1), (x, 0, oo))
+    assert bose_fermi_integral(integral) == integral
+
+
+def test_bose_einstein_with_negative_offset_returns_original():
+    # exp(x - 1) - 1 has a pole at x = 1, so the integral diverges
+    integral = Integral(x / (exp(x - 1) - 1), (x, 0, oo))
+    assert bose_fermi_integral(integral) == integral
+
+
+def test_fermi_dirac_with_negative_offset_is_supported():
+    # The Fermi-Dirac integral converges for any real offset
+    integral = Integral(x / (exp(x - 1) + 1), (x, 0, oo))
+    assert bose_fermi_integral(integral) != integral

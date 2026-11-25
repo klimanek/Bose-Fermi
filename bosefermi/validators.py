@@ -72,6 +72,31 @@ class IntegralValidator:
             return False
         return True
 
+    def validate_coefficient_positive(self, coefficient) -> bool:
+        """Check that the exponential coefficient is not known to be <= 0.
+
+        ``a <= 0`` makes the integral diverge: the integrand does not decay
+        (or grows) as x -> infinity.  Unknown signs are accepted.
+        """
+        coefficient = sympify(coefficient)
+        if coefficient.is_positive is False:
+            self.logger.debug(f"Coefficient {coefficient} is not positive")
+            return False
+        return True
+
+    def validate_bose_einstein_offset(self, offset) -> bool:
+        """Check that a Bose-Einstein offset is not known to be negative.
+
+        For ``b < 0`` the denominator ``exp(a*x + b) - 1`` has a pole at
+        ``x = -b/a > 0`` and the integral diverges.  Fermi-Dirac integrals
+        stay finite for any real ``b``.
+        """
+        offset = sympify(offset)
+        if offset.is_negative is True:
+            self.logger.debug(f"Negative Bose-Einstein offset {offset}")
+            return False
+        return True
+
     def validate_all(self, expr) -> bool:
         """Run all validation checks."""
         checks = [
