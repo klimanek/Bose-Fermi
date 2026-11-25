@@ -47,6 +47,9 @@ def white_dwarf_structure_example():
     print("μ = electron chemical potential")
     print("T = temperature (often T ~ 10^7 K)")
     print("E_F = Fermi energy ~ μ at T=0")
+    print("\nNote: the closed forms below are evaluated for μ = 0 (x = E/(k_B*T)).")
+    print("A white dwarf is the opposite limit - strongly degenerate, μ >> k_B*T -")
+    print("so its equation of state follows from the T = 0 step-function limit.")
 
     print("\nDegenerate electron gas:")
     print("Electrons fill states up to Fermi energy E_F")
@@ -90,7 +93,7 @@ def white_dwarf_structure_example():
     print("\nHydrostatic equilibrium:")
     print("dP/dr = -G*M(r)*ρ(r)/r²")
     print("Gravity ← vs → Degenerate electron pressure")
-    print("Our integral determines P(ρ) - the equation of state!")
+    print("The T = 0 limit of these integrals gives P(ρ) - the equation of state.")
 
     return density_result, energy_result, pressure_result
 
@@ -416,7 +419,7 @@ def main():
     print(f"   • Pressure: (2/3)∫ x^(3/2)/(e^x+1) dx = {N(pressure_res, 4)}")
 
     print("\nPhysical significance:")
-    print("   • These integrals determine the equation of state P(ρ)")
+    print("   • At T = 0 these integrals give the equation of state P(ρ)")
     print("   • Equation of state → hydrostatic equilibrium")
     print("   • Equilibrium → white dwarf radius and stability")
     print("   • Critical mass → stellar fate!")

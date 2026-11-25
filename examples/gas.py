@@ -59,13 +59,14 @@ def fermi_gas_energy_example():
     # For demonstration, consider the integral after appropriate substitutions
     print("\nDimensionless Variables:")
     print(
-        "Let x = E/(k_B*T). When considering integrals for properties like specific heat (in the Sommerfeld expansion),"
+        "Let x = E/(k_B*T). In a metal the occupation factor is 1/(exp(x - η) + 1)"
     )
-    print("terms proportional to these Fermi-Dirac integrals appear:")
+    print("with η = μ/(k_B*T) ~ 10^2-10^4, so the integrals below are the")
+    print("μ = 0 special case of that family, not the metal's actual values.")
 
-    # Key integral that appears in the calculation (relevant for energy at finite T)
+    # The same family of Fermi-Dirac integrals, evaluated at μ = 0
     key_integral = Integral(x ** (S(3) / 2) / (exp(x) + 1), (x, 0, oo))
-    print(f"∫₀^∞ x^(3/2)/(e^x + 1) dx = {key_integral}")
+    print(f"\n∫₀^∞ x^(3/2)/(e^x + 1) dx = {key_integral}")
 
     print("\nOur Bose-Fermi Solver in Action:")
     result = bose_fermi_integral(key_integral, debug=True)
@@ -221,7 +222,7 @@ def temperature_scaling_demo():
     print(
         "For instance, the electronic heat capacity (C_el) of metals at low temperatures is proportional to T:"
     )
-    print("C_el ∝ T · (coefficient involving π²/6 etc.)")
+    print("C_el = γ·T with the Sommerfeld coefficient γ = π²k_B²g(E_F)/3")
     print("")
     print(
         "This linear-in-T electronic heat capacity is a direct consequence of Fermi-Dirac statistics,"
@@ -229,21 +230,18 @@ def temperature_scaling_demo():
     print("as only electrons near the Fermi surface can be thermally excited.")
     print("(This contrasts with the T³ dependence for phonons in the Debye model).")
 
-    # Show numerical values for comparison
-    print("\nComparison with Classical (Boltzmann) Result:")
-    # For a free classical gas, the integral related to total energy would be:
+    # Same moment with a Boltzmann weight instead of the Fermi-Dirac one
+    print("\nComparison with the Boltzmann Weight:")
     classical_integral_value = gamma(S(3) / 2 + 1)  # Gamma(5/2)
 
     print(
-        f"Integral for a classical gas (no Pauli exclusion): {classical_integral_value} = {N(classical_integral_value, 6)}"
+        f"Boltzmann weight ∫x^(3/2)e^(-x)dx = Γ(5/2) = {N(classical_integral_value, 6)}"
     )
-    print(
-        f"Integral for a quantum Fermi gas (with Pauli exclusion): {exact_result} = {N(exact_result, 6)}"
-    )
-    print(f"Ratio (Quantum/Classical): {N(exact_result / classical_integral_value, 4)}")
-    print(
-        "The ratio shows how quantum effects significantly reduce the contribution at this energy scale compared to classical predictions."
-    )
+    print(f"Fermi-Dirac (μ = 0): {exact_result} = {N(exact_result, 6)}")
+    print(f"Ratio F-D/Boltzmann: {N(exact_result / classical_integral_value, 4)}")
+    print("(= η(5/2) = (1 - 2^(-3/2))·ζ(5/2), i.e. about 13 % lower)")
+    print("This compares the same moment with and without the Pauli exclusion")
+    print("factor; it is not a physical gas-to-gas comparison.")
 
     return exact_result
 
