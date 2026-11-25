@@ -195,10 +195,11 @@ Negativní `a` je zamítnuto jen mimochodem (přes přepis `exp(−x) → 1/exp(
    nebo `simplify(..., ratio=...)` a měřit; pro porovnání v testech stačí `simplify(result - expected)`.
 5. **`as_numer_denom` nestačí** pro všechny zápisy — normalizace (P2-2) patří do samostatné fáze
    před matchem, ne do matcheru samotného.
-6. **Konzistence s poznámkami o SymPy.** `notes/sympy/` plánuje Meijer-G patterny a uvádí jen BE
-   větev (`polylog(p+1, exp(-b))`); uzavřený tvar pro FD s `b ≠ 0` tam chybí. Po opravě P0-1/P0-2
-   doplnit správné formule i do `SYMPY_INTEGRATION_ANALYSIS.md` a `SYMPY_IMPLEMENTATION_PLAN.md`,
-   aby se chyba nepřenesla do integrace.
+6. **Poznámky o SymPy.** Původní čtyři analýzy (`MEIJERINT_ANALYSIS.md`, `SYMPY_INTEGRALS_ANALYSIS.md`,
+   `SYMPY_INTEGRATION_ANALYSIS.md`, `SYMPY_IMPLEMENTATION_PLAN.md`) byly smazány: popisovaly
+   neexistující třídy (`MeijerPatternMatcher`, `MeijerIntegral`) a numericky neplatné identity
+   (`ζ(s)` jako Meijer G). Aktuální a ověřené je `notes/sympy/MEIJERINT_TABLE_EXTENSION.md`
+   a `notes/sympy/bosefermi-sympy.patch`.
 7. **Symetrie BE/FD.** FD `b=0` je `η(s)`, BE `b=0` je `ζ(s)`; pro `p=0` dej oběma konzistentní
    chování (`ln 2` vs. divergence) a otestuj jako první řádek tabulky — je to nejčastější případ.
 
