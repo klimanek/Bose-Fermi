@@ -84,7 +84,11 @@ The following symbolic forms are supported:
 | $\int_0^\infty \frac{x^p}{e^{\alpha x + \mu} - 1} dx$ | $\Gamma(p+1)\cdot\mathrm{Li}_{p+1}(e^{-\mu})/\alpha^{p+1}$ |
 | $\int_0^\infty \frac{x^p}{e^x + 1} dx$ | $\Gamma(p+1)\cdot\eta(p+1)$ |
 | $\int_0^\infty \frac{x^p}{e^{\alpha x} + 1} dx$ | $\Gamma(p+1)\cdot\eta(p+1)/\alpha^{p+1}$ |
+| $\int_0^\infty \frac{x^p}{e^{x + \mu} + 1} dx$ | $-\Gamma(p+1)\cdot\mathrm{Li}_{p+1}(-e^{-\mu})$ |
+| $\int_0^\infty \frac{x^p}{e^{\alpha x + \mu} + 1} dx$ | $-\Gamma(p+1)\cdot\mathrm{Li}_{p+1}(-e^{-\mu})/\alpha^{p+1}$ |
 | ... |
+
+For fermions with $\mu = 0$ and $p = 0$ the result is the special value $\eta(1) = \ln 2$.
 
 ---
 

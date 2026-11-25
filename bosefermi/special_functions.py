@@ -4,7 +4,7 @@ Special function utilities for Bose-Fermi integrals.
 
 from typing import Union
 
-from sympy import Expr, Rational, S, exp, gamma, polylog, zeta
+from sympy import Expr, Rational, S, exp, gamma, log, polylog, zeta
 
 SymPyExpr = Union[Expr, Rational, int, float]
 
@@ -14,12 +14,17 @@ def fermi_dirac_special_function(p: SymPyExpr, b: SymPyExpr) -> SymPyExpr:
     Compute special function for Fermi-Dirac integrals.
 
     For b=0: returns (1 - 1/2^p) * zeta(p+1) [Dirichlet eta function]
-    For b≠0: returns polylog(p+1, -exp(-b))
+    For b≠0: returns -polylog(p+1, -exp(-b))
+
+    The p=0 case is special: the generic formula gives 0*zeta(1) = nan,
+    while the integral (and eta(1)) is log(2).
     """
     if b == 0:
+        if p == 0:
+            return log(2)
         return (S.One - S.One / (2**p)) * zeta(p + 1)
     else:
-        return polylog(p + 1, -exp(-b))
+        return -polylog(p + 1, -exp(-b))
 
 
 def bose_einstein_special_function(p: SymPyExpr, b: SymPyExpr) -> SymPyExpr:
