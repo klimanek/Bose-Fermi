@@ -205,10 +205,11 @@ def plot_white_dwarf_properties():
 
     for T, color in zip(temperatures, colors):
         if T < 0.2:  # T=0 approximation
-            fermi = np.where(x < 3, 1, 0)  # Step function
+            fermi = np.where(x < 1, 1, 0)  # step at E = E_F
             label = "T ≈ 0 (degenerate)"
         else:
-            fermi = 1 / (np.exp(x / T) + 1)
+            # f(E) = 1/(exp((E - E_F)/(k_B*T)) + 1) with x = E/E_F
+            fermi = 1 / (np.exp((x - 1) / T) + 1)
             label = f"T = {T} E_F/k_B"
         ax1.plot(x, fermi, color=color, linewidth=2, label=label)
 
