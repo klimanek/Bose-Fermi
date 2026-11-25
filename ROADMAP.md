@@ -20,8 +20,13 @@ return polylog(p + 1, -exp(-b))
 return -polylog(p + 1, -exp(-b))
 ```
 
-**Proč:** $\int_0^\infty \frac{x^p}{e^{ax+b}+1}dx
-= -\frac{\Gamma(p+1)}{a^{p+1}}\mathrm{Li}_{p+1}(-e^{-b})$.
+**Proč:**
+
+$$
+\int_0^\infty \frac{x^p}{e^{ax+b}+1}\,dx
+= -\frac{\Gamma(p+1)}{a^{p+1}}\mathrm{Li}_{p+1}(-e^{-b}).
+$$
+
 Odvození: $\frac{1}{e^{ax+b}+1}=\sum_{n\ge1}(-1)^{n-1}e^{-n(ax+b)}$, takže součet je $-Li_{p+1}(-e^{-b})$.
 
 **Repro** (mpmath quad vs. sympy):

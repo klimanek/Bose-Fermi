@@ -2,9 +2,10 @@
 
 > **TL;DR** — Do `_create_lookup_table()` (tabulka „funkce → Meijerova G") tenhle integrál
 > obecně přidat **nelze**: tabulka umí jen **konečné** kombinace G funkcí, ale Mellinův obraz
-> $1/(e^{ax+b}\pm 1)$ je $a^{-s}\Gamma(s)\mathrm{Li}_s(\pm e^{-b})$ (pro $b=0$ $\Gamma(s)\zeta(s)$ resp.
-> $\Gamma(s)\eta(s)$), což **není** Meijerova G funkce. Reálné místo je háček v
-> `_meijerint_definite_2()` (nebo v `meijerint_definite()`), který vrátí hotový uzavřený tvar.
+> $1/(e^{ax+b}\pm 1)$ je $a^{-s}\Gamma(s)\mathrm{Li}_s(\pm e^{-b})$. Pro $b=0$ jde o
+> $\Gamma(s)\zeta(s)$, resp. $\Gamma(s)\eta(s)$; to **není** Meijerova G funkce. Reálné místo
+> je háček v `_meijerint_definite_2()` (nebo v `meijerint_definite()`), který vrátí hotový
+> uzavřený tvar.
 > `meijerint_definite()` už dnes výsledek bez `meijerg` **přijímá a vrací** (větev
 > `if _has(res[0], meijerg) … else: return res`), takže se to dá udělat čistě.
 
